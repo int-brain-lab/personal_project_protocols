@@ -108,7 +108,7 @@ bonsai.start_passive_visual_stim(
     sph.SESSION_RAW_DATA_FOLDER,  # save to the raw_behavior_data folder of the session
     map_time="00:05:00",  # RFMap time, length of the stimulation
     rate=0.1,  # Hz of RFMap stims (not sure have to check)
-    sa_time="00:10:00",  # spontaneous activity time
+    sa_time="00:05:00",  # spontaneous activity time
 )  # Locks
 # start Bonsai stim workflow
 bonsai.start_visual_stim(sph)

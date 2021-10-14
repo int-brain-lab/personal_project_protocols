@@ -1,0 +1,11 @@
+{
+    "__CREATED-ON__": "2021-10-14 14:18:15.407962",
+    "__DEF-TEXT__": "This file contains information about a PyBpod protocol.",
+    "__DEF-URL__": "http://pybpod.readthedocs.org",
+    "__SOFTWARE__": "PyBpod GUI API v1.8.2",
+    "__UPDATED-ON__": "2021-10-14 14:18:15.407962",
+    "__UUID4__": "afa867f1-b030-4a77-a50a-6d398de78419",
+    "commands": [],
+    "name": "_ephysrig_ksocha_passiveTask",
+    "trigger-softcodes": false
+}
