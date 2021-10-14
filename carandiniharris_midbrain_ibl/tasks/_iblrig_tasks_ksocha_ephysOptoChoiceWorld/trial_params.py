@@ -22,6 +22,66 @@ from iblrig.iotasks import ComplexEncoder
 log = logging.getLogger("iblrig")
 
 
+def init_laser_block_len(tph):
+    if (tph.block_init_5050) and not (tph.laser_half_half):
+        return 1000
+    elif tph.laser_half_half:
+        return tph.laser_half_trials
+    else:
+        laser_block_len = int(misc.texp(factor=tph.laser_block_len_factor,
+                                        min_=tph.laser_block_len_min,
+                                        max_=tph.laser_block_len_max))
+        while (tph.block_len - tph.laser_transition_min
+                <= laser_block_len
+                <= tph.block_len + tph.laser_transition_min):
+            laser_block_len = int(misc.texp(factor=tph.laser_block_len_factor,
+                                            min_=tph.laser_block_len_min,
+                                            max_=tph.laser_block_len_max))
+    return laser_block_len
+
+
+def update_laser_block_params(tph):
+    tph.laser_block_trial_num += 1
+    if tph.laser_block_trial_num > tph.laser_block_len:
+        tph.laser_block_num += 1
+        tph.laser_block_trial_num = 1
+        if tph.laser_half_half:
+            laser_block_len = 100
+        else:
+            laser_block_len = int(misc.texp(factor=tph.laser_block_len_factor,
+                                            min_=tph.laser_block_len_min,
+                                            max_=tph.laser_block_len_max))
+            while ((tph.block_len - tph.block_trial_num) - tph.laser_transition_min
+                    <= laser_block_len
+                    <= (tph.block_len - tph.block_trial_num) + tph.laser_transition_min):
+                laser_block_len = int(misc.texp(factor=tph.laser_block_len_factor,
+                                                min_=tph.laser_block_len_min,
+                                                max_=tph.laser_block_len_max))
+    return tph
+
+
+def get_laser_probability(tph):
+    if tph.contrast != 0:
+        return int(tph.laser_block)
+    elif tph.stim_probability_left == 0.5:
+        return 0
+    elif tph.laser_block:
+        return tph.laser_prob_0_stim
+    elif not tph.laser_block:
+        return tph.laser_prob_0_nostim
+
+
+def update_laser_stimulation(tph):
+    if (tph.laser_block_trial_num == 1):
+        if (tph.laser_block_num == 2) and tph.block_init_5050 and not tph.laser_half_half:
+            tph.laser_block = bool(np.random.choice([1, 0]))
+        else:
+            tph.laser_block = not tph.laser_block
+
+    tph.laser_probability = get_laser_probability(tph)
+    return bool(np.random.choice([1, 0], p=[tph.laser_probability, 1-tph.laser_probability]))
+
+
 class TrialParamHandler(object):
     """All trial parameters for the current trial.
     On self.trial_completed a JSON serializable string containing state/event
@@ -42,6 +102,7 @@ class TrialParamHandler(object):
         self.position_set = sph.STIM_POSITIONS
         self.contrast_set = sph.CONTRAST_SET
         self.contrast_set_probability_type = sph.CONTRAST_SET_PROBABILITY_TYPE
+        self.contrast_prob_0 = sph.CONTRAST_PROB_0
         self.repeat_on_error = sph.REPEAT_ON_ERROR
         self.threshold_events_dict = sph.ROTARY_ENCODER.THRESHOLD_EVENTS
         self.quiescent_period_base = sph.QUIESCENT_PERIOD
@@ -59,6 +120,8 @@ class TrialParamHandler(object):
         self.out_noise = sph.OUT_NOISE
         self.out_stop_sound = sph.OUT_STOP_SOUND
         self.poop_count = sph.POOP_COUNT
+        self.out_laser_on = sph.OUT_LASER_ON
+        self.out_laser_off = sph.OUT_LASER_OFF
         self.save_ambient_data = sph.RECORD_AMBIENT_SENSOR_DATA
         self.as_data = {
             "Temperature_C": -1,
@@ -72,8 +135,6 @@ class TrialParamHandler(object):
         # Initialize parameters that may change every trial
         self.trial_num = 0
         self.stim_phase = 0.0
-        self.stim_reverse = 0
-
         self.block_num = 0
         self.block_trial_num = 0
         self.block_len_factor = sph.BLOCK_LEN_FACTOR
@@ -91,9 +152,40 @@ class TrialParamHandler(object):
         self.position_buffer = [self.position]
         # Contrast
         self.contrast = misc.draw_contrast(self.contrast_set)
+        while self.contrast == 0:  # don't start the session with a 0% contrast trial
+            self.contrast = misc.draw_contrast(self.contrast_set)
         self.contrast_buffer = [self.contrast]
         self.signed_contrast = self.contrast * np.sign(self.position)
         self.signed_contrast_buffer = [self.signed_contrast]
+        self.stim_reverse = 0
+        # Laser
+        self.laser_half_half = sph.LASER_HALF_HALF
+        self.laser_half_trials = sph.LASER_HALF_TRIALS
+        self.laser_first_half_on = sph.LASER_FIRST_HALF_ON
+        self.laser_block_num = 0
+        self.laser_block_trial_num = 0
+        self.laser_block_len_factor = sph.LASER_BLOCK_LEN_FACTOR
+        self.laser_block_len_min = sph.LASER_BLOCK_LEN_MIN
+        self.laser_block_len_max = sph.LASER_BLOCK_LEN_MAX
+        self.laser_prob_0_stim = sph.LASER_PROB_0_STIM
+        self.laser_prob_0_nostim = sph.LASER_PROB_0_NOSTIM
+        self.laser_transition_min = sph.LASER_TRANSITION_MIN
+        self.laser_block_len = init_laser_block_len(self)
+        if (self.block_init_5050) and not (self.laser_half_half):
+            self.laser_stimulation = False
+        elif not (self.block_init_5050) and not (self.laser_half_half):
+            self.laser_stimulation = bool(np.random.choice([True, False]))
+        elif self.laser_half_half:
+            self.laser_stimulation = self.laser_first_half_on
+        if self.laser_stimulation:
+            self.laser_out = self.out_laser_on
+            self.laser_block = True
+        else:
+            self.laser_out = self.out_laser_off
+            self.laser_block = False
+        self.laser_probability = int(self.laser_stimulation)
+
+
         # RE event names
         self.event_error = self.threshold_events_dict[self.position]
         self.event_reward = self.threshold_events_dict[-self.position]
@@ -109,10 +201,6 @@ class TrialParamHandler(object):
         self.trial_correct_buffer = []
         self.ntrials_correct = 0
         self.water_delivered = 0
-        ## LASER
-
-        self.laser_probability=sph.LASER_PROBABILITY
-        self.laser_out=int(np.random.choice([0, 255],1,[1-self.laser_probability,self.laser_probability]))
 
     def check_stop_criterions(self):
         return misc.check_stop_criterions(
@@ -141,11 +229,14 @@ class TrialParamHandler(object):
     def show_trial_log(self):
         msg = f"""
 ##########################################
-LASER_OUT:            {self.laser_out}
 TRIAL NUM:            {self.trial_num}
 STIM POSITION:        {self.position}
 STIM CONTRAST:        {self.contrast}
-STIM PHASE:           {self.stim_phase}
+OPTO BLOCK NUMBER:    {self.laser_block_num}
+OPTO BLOCK LENGTH:    {self.laser_block_len}
+TRIALS IN BLOCK:      {self.laser_block_trial_num}
+OPTO STIMULATION:     {self.laser_stimulation}
+OPTO PROBABILITY:     {self.laser_probability}
 BLOCK NUMBER:         {self.block_num}
 BLOCK LENGTH:         {self.block_len}
 TRIALS IN BLOCK:      {self.block_trial_num}
@@ -156,9 +247,6 @@ NTRIALS CORRECT:      {self.ntrials_correct}
 NTRIALS ERROR:        {self.trial_num - self.ntrials_correct}
 WATER DELIVERED:      {np.round(self.water_delivered, 3)} µl
 TIME FROM START:      {self.elapsed_time}
-TEMPERATURE:          {self.as_data['Temperature_C']} ºC
-AIR PRESSURE:         {self.as_data['AirPressure_mb']} mb
-RELATIVE HUMIDITY:    {self.as_data['RelativeHumidity']} %
 ##########################################"""
         log.info(msg)
 
@@ -167,7 +255,9 @@ RELATIVE HUMIDITY:    {self.as_data['RelativeHumidity']} %
         if self.trial_num == 0:
             self.trial_num += 1
             self.block_num += 1
+            self.laser_block_num += 1
             self.block_trial_num += 1
+            self.laser_block_trial_num += 1
             # Send next trial info to Bonsai
             bonsai.send_current_trial_info(self)
             return
@@ -190,12 +280,23 @@ RELATIVE HUMIDITY:    {self.as_data['RelativeHumidity']} %
         self.position_buffer.append(self.position)
         # Update contrast + buffer
         self.contrast = misc.draw_contrast(
-            self.contrast_set, prob_type=self.contrast_set_probability_type
+            self.contrast_set, prob_type=self.contrast_set_probability_type, idx_prob=self.contrast_prob_0
         )
         self.contrast_buffer.append(self.contrast)
         # Update signed_contrast + buffer (AFTER position update)
         self.signed_contrast = self.contrast * np.sign(self.position)
         self.signed_contrast_buffer.append(self.signed_contrast)
+        # Update laser block
+        self = update_laser_block_params(self)
+        # Update laser probability
+        self.laser_probability = get_laser_probability(self)
+        # Update if laser is on
+        self.laser_stimulation = update_laser_stimulation(self)
+        if self.laser_stimulation:
+            self.laser_out = self.out_laser_on
+        else:
+            self.laser_out = self.out_laser_off
+
         # Update state machine events
         self.event_error = self.threshold_events_dict[self.position]
         self.event_reward = self.threshold_events_dict[-self.position]
@@ -203,11 +304,6 @@ RELATIVE HUMIDITY:    {self.as_data['RelativeHumidity']} %
         self.trial_correct = None
         # Open the data file to append the next trial
         self.data_file = open(self.data_file_path, "a")
-
-
-        self.laser_out=int(np.random.choice([0, 255],1,[1-self.laser_probability,self.laser_probability]))
-
-
         # Send next trial info to Bonsai
         bonsai.send_current_trial_info(self)
 
@@ -289,8 +385,8 @@ if __name__ == "__main__":
     dt = [x if int(x) >= 10 else "0" + x for x in dt]
     dt.insert(3, "-")
     _user_settings.PYBPOD_SESSION = "".join(dt)
-    _user_settings.PYBPOD_SETUP = "biasedChoiceWorld"
-    _user_settings.PYBPOD_PROTOCOL = "_iblrig_tasks_biasedChoiceWorld"
+    _user_settings.PYBPOD_SETUP = "opto_ephysChoiceWorld"
+    _user_settings.PYBPOD_PROTOCOL = "_iblrig_tasks_opto_ephysChoiceWorld"
     if platform == "linux":
         r = "/home/nico/Projects/IBL/github/iblrig"
         _task_settings.IBLRIG_FOLDER = r

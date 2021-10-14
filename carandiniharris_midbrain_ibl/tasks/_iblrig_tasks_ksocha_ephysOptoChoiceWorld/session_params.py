@@ -100,6 +100,11 @@ class SessionParamHandler(object):
             self.ALL_THRESHOLDS, self.STIM_GAIN, self.PARAMS["COM_ROTARY_ENCODER"]
         )
         # =====================================================================
+        # LASER
+        # =====================================================================
+        self.OUT_LASER_ON = ('BNC2', 255)
+        self.OUT_LASER_OFF = ('BNC2', 0)
+        # =====================================================================
         # SOUNDS
         # =====================================================================
         self.SOFT_SOUND = None if "ephys" in self.PYBPOD_BOARD else self.SOFT_SOUND
@@ -134,6 +139,7 @@ class SessionParamHandler(object):
         self.OUT_STOP_SOUND = (
             ("SoftCode", 0) if self.SOFT_SOUND else ("Serial3", ord("X"))
         )
+
         # =====================================================================
         # SAVE SETTINGS FILE AND TASK CODE
         # =====================================================================
@@ -263,8 +269,8 @@ if __name__ == "__main__":
     dt = [x if int(x) >= 10 else "0" + x for x in dt]
     dt.insert(3, "-")
     _user_settings.PYBPOD_SESSION = "".join(dt)
-    _user_settings.PYBPOD_SETUP = "biasedChoiceWorld"
-    _user_settings.PYBPOD_PROTOCOL = "_iblrig_tasks_biasedChoiceWorld"
+    _user_settings.PYBPOD_SETUP = "opto_biasedChoiceWorld"
+    _user_settings.PYBPOD_PROTOCOL = "_iblrig_tasks_opto_biasedChoiceWorld"
     if platform == "linux":
         r = "/home/nico/Projects/IBL/github/iblrig"
         _task_settings.IBLRIG_FOLDER = r
