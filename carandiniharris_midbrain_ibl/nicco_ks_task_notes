@@ -1,0 +1,20 @@
+
+
+
+_ks_tasks_passive
+    no ephys dependency
+    spontaneou_activity 10 min changeable
+    change passive task replay n stims    
+    
+    
+iblrig.pre_generate_passiveCW_session_files(nsessions, path=
+
+
+
+remove sync square for movements, only detect onset = 1/white and offset=0/black
+expose spontaneous activity due time for calling bonsai.start_RFM_stim()
+load_passive_session_pcs
+load_passive_session_delays_ids don't assume folder location
+
+
+_ephysrig_ksocha_passiveTask
