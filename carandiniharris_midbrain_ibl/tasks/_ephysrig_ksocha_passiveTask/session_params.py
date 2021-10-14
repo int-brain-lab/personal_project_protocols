@@ -9,14 +9,15 @@ from pathlib import Path
 from sys import platform
 from tkinter import messagebox
 
-from pythonosc import udp_client
-
 import iblrig.adaptive as adaptive
 import iblrig.ambient_sensor as ambient_sensor
 import iblrig.iotasks as iotasks
 import iblrig.misc as misc
-import iblrig.sound as sound
 import iblrig.path_helper as ph
+import iblrig.sound as sound
+import iblrig.user_input as user_input
+import numpy as np
+from pythonosc import udp_client
 
 log = logging.getLogger("iblrig")
 log.setLevel(logging.DEBUG)
@@ -107,25 +108,26 @@ class SessionParamHandler(object):
         self.LAST_TRIAL_DATA = None  # iotasks.load_data(self.PREVIOUS_SESSION_PATH)
         self.LAST_SETTINGS_DATA = None  # iotasks.load_settings(self.PREVIOUS_SESSION_PATH)
         # Get pregenerated session num (the num in the filename! from corresponding ephys sesison)
-        self.PREGENERATED_SESSION_NUM =
+        self.SESSION_IDX = user_input.ask_confirm_session_idx(0)  # Starts always at session 1
+        self.PREGENERATED_SESSION_NUM = self.SESSION_IDX + 1
         # Load session from file
         (
             self.STIM_DELAYS,
             self.STIM_IDS,
-        ) = iotasks.load_passive_session_delays_ids(self.PREGENERATED_SESSION_NUM)
+        ) = self.load_passive_session_delays_ids()
         self.QUIESCENT_PERIOD = None
         self.LEN_BLOCKS = None
         (
             self.POSITIONS,
             self.CONTRASTS,
             self.STIM_PHASE,
-        ) = iotasks.load_passive_session_pcs(self.PREGENERATED_SESSION_NUM)
+        ) = self.load_passive_session_pcs()
         # =====================================================================
         # ADAPTIVE STUFF
         # =====================================================================
         self.AUTOMATIC_CALIBRATION = True
         self.CALIBRATION_VALUE = 0.067
-        self.REWARD_AMOUNT = 1.5
+        self.REWARD_AMOUNT = 0
         self.REWARD_TYPE = None
 
         self.CALIB_FUNC = None
@@ -216,6 +218,26 @@ class SessionParamHandler(object):
     # =========================================================================
     # METHODS
     # =========================================================================
+    def load_passive_session_delays_ids(self) -> tuple:
+        pregenerated_session_num = self.PREGENERATED_SESSION_NUM
+        base = Path(ph.get_iblrig_params_folder())
+        passive_session_folder = base.joinpath(self.PYBPOD_PROJECT, "tasks", self.PYBPOD_PROTOCOL, "sessions")
+        stimDelays = np.load(passive_session_folder / f"session_{pregenerated_session_num}_passive_stimDelays.npy")
+        stimIDs = np.load(passive_session_folder / f"session_{pregenerated_session_num}_passive_stimIDs.npy")
+        return stimDelays, stimIDs
+
+
+    def load_passive_session_pcs(self) -> tuple:
+        pregenerated_session_num = self.PREGENERATED_SESSION_NUM
+        base = Path(ph.get_iblrig_params_folder())
+        passive_session_folder = base.joinpath(self.PYBPOD_PROJECT, "tasks", self.PYBPOD_PROTOCOL, "sessions")
+        pcs = np.load(passive_session_folder / f"session_{pregenerated_session_num}_passive_pcs.npy")
+        pos = pcs[:, 0].tolist()
+        cont = pcs[:, 1].tolist()
+        phase = pcs[:, 2].tolist()
+        return pos, cont, phase
+
+
     def patch_settings_file(self, patch):
         self.__dict__.update(patch)
         misc.patch_settings_file(self.SETTINGS_FILE_PATH, patch)
@@ -315,9 +337,11 @@ if __name__ == "__main__":
         calling bonsai
         turning off lights of bpod board
     """
-    import task_settings as _task_settings
-    import iblrig.fake_user_settings as _user_settings
     import datetime
+
+    import iblrig.fake_user_settings as _user_settings
+
+    import task_settings as _task_settings
 
     dt = datetime.datetime.now()
     dt = [

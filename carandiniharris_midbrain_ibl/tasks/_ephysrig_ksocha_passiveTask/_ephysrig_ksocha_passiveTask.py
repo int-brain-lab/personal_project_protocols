@@ -52,15 +52,7 @@ card_play_noise = bytes(np.array([2, 6, 32, 255, 2, 3, 0, 44], dtype=np.int8))
 def do_gabor(osc_client, pcs_idx, pos, cont, phase):
     # send pcs to Bonsai
     bonsai.send_stim_info(
-        osc_client,
-        pcs_idx,
-        int(pos),
-        cont,
-        phase,
-        freq=0.10,
-        angle=0.0,
-        gain=4.0,
-        sigma=7.0,
+        osc_client, pcs_idx, int(pos), cont, phase, freq=0.10, angle=0.0, gain=4.0, sigma=7.0,
     )
 
     osc_client.send_message("/re", 2)  # show_stim 2
@@ -112,8 +104,12 @@ msg = (
 popup("WARNING!", msg)  # Locks
 
 # Run the passive part i.e. spontaneous activity and RFMapping stim
-bonsai.start_passive_visual_stim(sph.SESSION_RAW_DATA_FOLDER)  # Locks
-
+bonsai.start_passive_visual_stim(
+    sph.SESSION_RAW_DATA_FOLDER,  # save to the raw_behavior_data folder of the session
+    map_time="00:05:00",  # RFMap time, length of the stimulation
+    rate=0.1,  # Hz of RFMap stims (not sure have to check)
+    sa_time="00:10:00",  # spontaneous activity time
+)  # Locks
 # start Bonsai stim workflow
 bonsai.start_visual_stim(sph)
 time.sleep(5)
@@ -149,16 +145,14 @@ for sdel, sid in zip(sph.STIM_DELAYS, sph.STIM_IDS):
     scount += 1
 
 # FIXME: From here if task loop crashes nothing runs
-# Patch the PYBPOD_PROTOCOL of both ephys and passive sessions if session is mock
+# Patch the PYBPOD_PROTOCOL of passive session if session is mock
 if sph.IS_MOCK:
-    ephys_patch = {"PYBPOD_PROTOCOL": "_iblrig_tasks_ephysMockChoiceWorld"}
     passive_patch = {"PYBPOD_PROTOCOL": "_iblrig_tasks_passiveMockChoiceWorld"}
-    misc.patch_settings_file(sph.CORRESPONDING_EPHYS_SESSION, patch=ephys_patch)
     misc.patch_settings_file(sph.SETTINGS_FILE_PATH, patch=passive_patch)
 
 # Create a flag files
-misc.create_flag(sph.SESSION_FOLDER, "passive_data_for_ephys.flag")
-misc.create_flag(sph.SESSION_FOLDER, "poop_count")
+misc.create_flag(sph.SESSION_FOLDER, "create_me.flag")
+misc.create_flag(sph.SESSION_FOLDER, "transfer_me.flag")
 
 bpod.close()
 # Turn bpod light's back on
@@ -171,9 +165,9 @@ msg = "Passive protocol is over.\nMake sure you turn the VALVE back ON!"
 popup("WARNING!", msg)  # Locks
 
 if __name__ == "__main__":
-    pregenerated_session_num = "mock"
+    # pregenerated_session_num = "mock"
     # Load session PCS
-    position, contrast, phase = iotasks.load_passive_session_pcs(pregenerated_session_num)
+    # position, contrast, phase = iotasks.load_passive_session_pcs(pregenerated_session_num)
     # Load session stimDelays, stimIDs
-    stimDelays, stimIDs = iotasks.load_passive_session_delays_ids(pregenerated_session_num)
+    # stimDelays, stimIDs = iotasks.load_passive_session_delays_ids(pregenerated_session_num)
     print(".")
