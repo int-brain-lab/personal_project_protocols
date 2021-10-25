@@ -25,11 +25,29 @@ def bpod_loop_handler():
     f.canvas.flush_events()  # 100µs
 
 
+def softcode_handler(data):
+    """
+    Soft codes should work with resasonable latency considering our limiting
+    factor is the refresh rate of the screen which should be 16.667ms @ a frame
+    rate of 60Hz
+    1 : go_tone
+    2 : white_noise
+    """
+    global sph
+    if data == 0:
+        sph.stop_sound()
+    elif data == 1:
+        sph.play_tone()
+    elif data == 2:
+        sph.play_noise()
+    elif data == 3:
+        sph.start_camera_recording()
 # =============================================================================
 # CONNECT TO BPOD
 # =============================================================================
 bpod = Bpod()
-
+# Soft code handler function can run arbitrary code from within state machine
+bpod.softcode_handler_function = softcode_handler
 # Loop handler function is used to flush events for the online plotting
 bpod.loop_handler = bpod_loop_handler
 
@@ -71,7 +89,7 @@ for i in range(sph.NTRIALS):  # Main loop
             state_name="trial_start",
             state_timer=3600,  # ~100µs hardware irreducible delay
             state_change_conditions={"Port1In": "reset_rotary_encoder"},
-            output_actions=[],
+            output_actions=[("SoftCode", 3)],
         )  # To FPGA
     else:
         sma.add_state(
@@ -119,12 +137,12 @@ for i in range(sph.NTRIALS):  # Main loop
 
     sma.add_state(
         state_name="play_tone",
-        state_timer=0.001,
+        state_timer=0.1,
         state_change_conditions={
             "Tup": "reset2_rotary_encoder",
             "BNC2High": "reset2_rotary_encoder",
         },
-        output_actions=[("Serial3", sc_play_tone)],
+        output_actions=[sph.OUT_TONE],
     )
 
     sma.add_state(
@@ -149,7 +167,7 @@ for i in range(sph.NTRIALS):  # Main loop
         state_name="no_go",
         state_timer=tph.iti_error,
         state_change_conditions={"Tup": "exit_state"},
-        output_actions=[("Serial1", bonsai_hide_stim), ("Serial3", sc_play_noise)],
+        output_actions=[("Serial1", bonsai_hide_stim), sph.OUT_NOISE],
     )
 
     sma.add_state(
@@ -163,7 +181,7 @@ for i in range(sph.NTRIALS):  # Main loop
         state_name="error",
         state_timer=tph.iti_error,
         state_change_conditions={"Tup": "hide_stim"},
-        output_actions=[("Serial3", sc_play_noise)],
+        output_actions=[sph.OUT_NOISE],
     )
 
     sma.add_state(

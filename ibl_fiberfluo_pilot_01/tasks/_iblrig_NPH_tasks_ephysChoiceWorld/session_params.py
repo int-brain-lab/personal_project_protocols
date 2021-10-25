@@ -88,7 +88,6 @@ class SessionParamHandler(object):
         # =====================================================================
         self.LAST_TRIAL_DATA = iotasks.load_data(self.PREVIOUS_SESSION_PATH)
         self.LAST_SETTINGS_DATA = iotasks.load_settings(self.PREVIOUS_SESSION_PATH)
-        bonsai.start_mic_recording(self)
         self.IS_MOCK = user_input.ask_is_mock()  # Change to False if mock has its own task
         # Get pregenerated session num (the num in the filename!)
         if self.IS_MOCK:
@@ -134,6 +133,14 @@ class SessionParamHandler(object):
             self.ALL_THRESHOLDS, self.STIM_GAIN, self.PARAMS["COM_ROTARY_ENCODER"]
         )
         # =====================================================================
+        # VISUAL STIM
+        # =====================================================================
+        self.SYNC_SQUARE_X = 1.33
+        self.SYNC_SQUARE_Y = -1.03
+        self.USE_VISUAL_STIMULUS = True  # Run the visual stim in bonsai
+        self.BONSAI_EDITOR = False  # Open the Bonsai editor of visual stim
+        bonsai.start_visual_stim(self)
+        # =====================================================================
         # frame2TTL
         # =====================================================================
         # XXX: device
@@ -141,7 +148,7 @@ class SessionParamHandler(object):
         # =====================================================================
         # SOUNDS
         # =====================================================================
-        self.SOFT_SOUND = None
+        self.SOFT_SOUND = "xonar"
         self.SOUND_SAMPLE_FREQ = sound.sound_sample_freq(self.SOFT_SOUND)
         self.SOUND_BOARD_BPOD_PORT = "Serial3"
         self.WHITE_NOISE_DURATION = float(0.5)
@@ -153,30 +160,21 @@ class SessionParamHandler(object):
             output=self.SOFT_SOUND, samplerate=self.SOUND_SAMPLE_FREQ
         )
         # Create sounds and output actions of state machine
-        self.GO_TONE = sound.make_sound(
-            rate=self.SOUND_SAMPLE_FREQ,
-            frequency=self.GO_TONE_FREQUENCY,
-            duration=self.GO_TONE_DURATION,
-            amplitude=self.GO_TONE_AMPLITUDE,
-            fade=0.01,
-            chans="stereo",
-        )
-        self.WHITE_NOISE = sound.make_sound(
-            rate=self.SOUND_SAMPLE_FREQ,
-            frequency=-1,
-            duration=self.WHITE_NOISE_DURATION,
-            amplitude=self.WHITE_NOISE_AMPLITUDE,
-            fade=0.01,
-            chans="stereo",
-        )
+        # Create sounds and output actions of state machine
+        self.GO_TONE = None
+        self.WHITE_NOISE = None
+        self = sound.init_sounds(self)  # sets GO_TONE and WHITE_NOISE
+
         self.GO_TONE_IDX = 2
         self.WHITE_NOISE_IDX = 3
         # XXX: device
-        sound.configure_sound_card(
-            sounds=[self.GO_TONE, self.WHITE_NOISE],
-            indexes=[self.GO_TONE_IDX, self.WHITE_NOISE_IDX],
-            sample_rate=self.SOUND_SAMPLE_FREQ,
-        )
+        if self.SOFT_SOUND is None:
+            sound.configure_sound_card(
+                sounds=[self.GO_TONE, self.WHITE_NOISE],
+                indexes=[self.GO_TONE_IDX, self.WHITE_NOISE_IDX],
+                sample_rate=self.SOUND_SAMPLE_FREQ,
+            )
+            
         self.OUT_TONE = ("SoftCode", 1) if self.SOFT_SOUND else ("Serial3", 6)
         self.OUT_NOISE = ("SoftCode", 2) if self.SOFT_SOUND else ("Serial3", 7)
         self.OUT_STOP_SOUND = ("SoftCode", 0) if self.SOFT_SOUND else ("Serial3", ord("X"))
@@ -189,14 +187,6 @@ class SessionParamHandler(object):
         self.SUBJECT_WEIGHT = user_input.get_form_subject_weight(form_data)
         self.PROBE_DATA = user_input.get_form_probe_data(form_data)
         self.SUBJECT_PROJECT = None  # user_input.ask_project(self.PYBPOD_SUBJECTS[0])
-        # =====================================================================
-        # VISUAL STIM
-        # =====================================================================
-        self.SYNC_SQUARE_X = 1.33
-        self.SYNC_SQUARE_Y = -1.03
-        self.USE_VISUAL_STIMULUS = True  # Run the visual stim in bonsai
-        self.BONSAI_EDITOR = False  # Open the Bonsai editor of visual stim
-        bonsai.start_visual_stim(self)
         # =====================================================================
         # SAVE SETTINGS FILE AND TASK CODE
         # =====================================================================
@@ -228,6 +218,12 @@ class SessionParamHandler(object):
         messagebox.showinfo(title, msg)
         root.quit()
 
+    # Bonsai start camera called from main task file
+    def start_camera_recording(self):
+        if "ephys" in self.PYBPOD_BOARD:  # If on ephys record only sound
+            return bonsai.start_mic_recording(self)
+        return bonsai.start_camera_recording(self)
+    
     def save_ambient_sensor_reading(self, bpod_instance):
         return ambient_sensor.get_reading(bpod_instance, save_to=self.SESSION_RAW_DATA_FOLDER)
 
