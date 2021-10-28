@@ -32,6 +32,11 @@
             "when": 1
         },
         {
+            "cmd": "python C:\\iblrig\\scripts\\poop_count.py",
+            "type": "create_execcmd",
+            "when": 1
+        },
+        {
             "cmd": "python C:\\iblrig\\scripts\\create_session.py --poop=False",
             "type": "create_execcmd",
             "when": 1
