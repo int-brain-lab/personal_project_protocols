@@ -33,36 +33,36 @@ def list_repo_tasks(project_name):
     return tasks
 
 
-def copy_as_folder(src_folder_to_copy, to_dst_folder_path, overwrite=False):
-    """
-    Copy a folder as a folder to a destination folder
-    Will create the src_folder name in the dst_folder
-    Output should be the same as dragging a folder to another one.
+# def copy_as_folder(src_folder_to_copy, to_dst_folder_path, overwrite=False):
+#     """
+#     Copy a folder as a folder to a destination folder
+#     Will create the src_folder name in the dst_folder
+#     Output should be the same as dragging a folder to another one.
 
-    ./somewhere/src_folder/*
-    ./somewhere/dst_folder/*
+#     ./somewhere/src_folder/*
+#     ./somewhere/dst_folder/*
 
-    ./somewhere/dst_folder/src_folder_copy/*
-    """
-    src_folder = Path(src_folder_to_copy)
-    dst_folder = Path(to_dst_folder_path).joinpath(src_folder.name)
-    if overwrite:
-        shutil.rmtree(dst_folder)
-    shutil.copytree(src_folder, dst_folder)
-    print(f"  Copied {src_folder} to {dst_folder}")
+#     ./somewhere/dst_folder/src_folder_copy/*
+#     """
+#     src_folder = Path(src_folder_to_copy)
+#     dst_folder = Path(to_dst_folder_path).joinpath(src_folder.name)
+#     if overwrite:
+#         shutil.rmtree(dst_folder)
+#     shutil.copytree(src_folder, dst_folder)
+#     print(f"  Copied {src_folder} to {dst_folder}")
 
 
-def copy_project_tasks_files(project_name):
-    """Copy all files in project_protocols/{project_name}/tasks/* folder to
-    iblrig_params_path/{project_name}/tasks/* folder
-    """
+# def copy_project_tasks_files(project_name):
+#     """Copy all files in project_protocols/{project_name}/tasks/* folder to
+#     iblrig_params_path/{project_name}/tasks/* folder
+#     """
 
-    iblrig_params_path = Path(ph.get_iblrig_params_folder())
-    iblrig_params_tasks_path = iblrig_params_path / project_name / "tasks"
-    project_protocols_tasks_path = iblrig_params_path.parent.joinpath("project_protocols", project_name, "tasks")
-    print(f"\nCopying {project_name} tasks files to {iblrig_params_tasks_path}")
-    copy_as_folder(project_protocols_tasks_path, iblrig_params_tasks_path)
-    print("Done")
+#     iblrig_params_path = Path(ph.get_iblrig_params_folder())
+#     iblrig_params_tasks_path = iblrig_params_path / project_name / "tasks"
+#     project_protocols_tasks_path = iblrig_params_path.parent.joinpath("project_protocols", project_name, "tasks")
+#     print(f"\nCopying {project_name} tasks files to {iblrig_params_tasks_path}")
+#     copy_as_folder(project_protocols_tasks_path, iblrig_params_tasks_path)
+#     print("Done")
 
 
 def copy_task_files(project_name, task_name):
@@ -78,7 +78,7 @@ def copy_task_files(project_name, task_name):
         dst_task_path = dst_iblrig_params_project_tasks_path / src_task_path.name
         src_files = [x for x in src_task_path.rglob('*')]
         dirs = [x for x in src_files if x.is_dir()]
-        [dst_task_path.joinpath.mkdir(parents=True, exist_ok=True) for x in dst_task_path.parents]
+        [dst_task_path.mkdir(parents=True, exist_ok=True) for x in dst_task_path.parents]
         print(f"Copying {task_name} files to {dst_task_path}")
         for f in src_files:
             shutil.copy(f, dst_task_path)
@@ -93,8 +93,8 @@ def create_project_tasks(project_name):
     project_folder = Path(ph.get_iblrig_params_folder()).joinpath(project_name)
     p = Project()
     p.load(project_folder)
-    for task in list_repo_tasks(project_name):
-        task_name = task.name
+    for task_path in list_repo_tasks(project_name):
+        task_name = task_path.name
         print(f"Creating task {task_name}")
         task = p.find_task(task_name)
         task = p.create_task()
@@ -124,31 +124,48 @@ def create_project_experiment(project_name):
         print(f"    Created setup: {setup.name} in {exp.name}")
 
 
-def import_project_protocols_from(project_name, one=None, force=False):
-    for task in list_task_names(project_name):
-        pass
+def copy_project_protocols_files(project_name):
+    for task in list_repo_tasks(project_name):
+        copy_task_files(project_name, task)
 
-
-# def create_experiment_setup_for
+# XXX: review!
+def create_project(project_name):
+    """
+    Create a new project
+    """
+    project_folder = Path(ph.get_iblrig_params_folder()).joinpath(project_name)
+    p = Project()
+    p.load(project_folder)
+    p.name = project_name
+    p.save(project_folder)
+    print(f"Created project: {project_name}")
+    create_project_tasks(project_name)
+    create_project_experiment(project_name)
+    copy_project_protocols_files(project_name)
 
 
 if __name__ == "__main__":
     # test the list of list_personal_projects
     ppout = list_projects()
-    assert "nate_reverse_contingency" in ppout and ".git" not in ppout
+    assert any(["ibl_fiberfluo_pilot_01" in p.name for p in ppout])
+    assert any([".git" not in p.name for p in ppout])
     # test the list_task_names for one project
-    tnout = list_task_names("nate_reverse_contingency")
-    assert all(["_nmreverse_" in x for x in tnout])
+    tnout = list_repo_tasks("ibl_fiberfluo_pilot_01")
+    assert all(["NPH" in x.name for x in tnout])
     # test the copy_as_folder function
-    src = Path('src_folder')
-    dst = Path('dst_folder')
-    copy_as_folder(src, dst)
-    assert dst.joinpath('src_folder').exists()
+    # src = Path('src_folder')
+    # dst = Path('dst_folder')
+    # copy_as_folder(src, dst)
+    # assert dst.joinpath('src_folder').exists()
     # cleanup
-    src.rmdir()
-    shutil.rmtree(dst)
+    # src.rmdir()
+    # shutil.rmtree(dst)
     # test_creation of existing project
-    pbc.create_project("nate_reverse_contingency")
-
+    pbc.create_custom_project_from_alyx("ibl_fiberfluo_pilot_01")
+    # create tasks
+    create_project_tasks("ibl_fiberfluo_pilot_01")
+    # move files
+    copy_project_protocols_files("ibl_fiberfluo_pilot_01")
+    # create experiments
+    create_project_experiment("ibl_fiberfluo_pilot_01")
     # create board, users, subjects tasks and generic experiment w/ 1 setup per task
-    ...
