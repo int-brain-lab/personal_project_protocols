@@ -3,6 +3,7 @@
 # @File: import_project_protocols_to_rig.py
 # @Author: Niccolo' Bonacchi (@nbonacchi)
 # @Date: Wednesday, October 13th 2021, 5:05:50 pm
+import argparse
 import shutil
 from pathlib import Path
 
@@ -29,7 +30,7 @@ def list_repo_tasks(project_name):
         print(f"No project found with name: {project_name}")
         return
     project_path = projects[matches.index(True)]
-    tasks = [x for x in project_path.joinpath('tasks').glob("*") if x.is_dir()]
+    tasks = [x for x in project_path.joinpath("tasks").glob("*") if x.is_dir()]
     return tasks
 
 
@@ -76,9 +77,11 @@ def copy_task_files(project_name, task_name):
 
     for src_task_path in list_repo_tasks(project_name):
         dst_task_path = dst_iblrig_params_project_tasks_path / src_task_path.name
-        src_files = [x for x in src_task_path.rglob('*')]
+        src_files = [x for x in src_task_path.rglob("*")]
         dirs = [x for x in src_files if x.is_dir()]
-        [dst_task_path.mkdir(parents=True, exist_ok=True) for x in dst_task_path.parents]
+        [src_files.pop(src_files.index(x)) for x in dirs]
+        [x.mkdir(parents=True, exist_ok=True) for x in dirs]
+        dst_task_path.mkdir(parents=True, exist_ok=True)
         print(f"Copying {task_name} files to {dst_task_path}")
         for f in src_files:
             shutil.copy(f, dst_task_path)
@@ -104,7 +107,7 @@ def create_project_tasks(project_name):
     print("Done")
 
 
-def create_project_experiment(project_name):
+def create_project_experiment_and_setups(project_name):
     project_folder = Path(ph.get_iblrig_params_folder()).joinpath(project_name)
     p = Project()
     p.load(project_folder)
@@ -113,6 +116,8 @@ def create_project_experiment(project_name):
     p.save(project_folder)
     print(f"Created experiment: {exp.name}")
     tasks = list_repo_tasks(project_name)
+    if p.boards in [None, []]:
+        p.create_board()
     for task_path in tasks:
         setup = exp.create_setup()
         setup.name = task_path.name
@@ -128,44 +133,67 @@ def copy_project_protocols_files(project_name):
     for task in list_repo_tasks(project_name):
         copy_task_files(project_name, task)
 
-# XXX: review!
+
 def create_project(project_name):
     """
     Create a new project
     """
-    project_folder = Path(ph.get_iblrig_params_folder()).joinpath(project_name)
-    p = Project()
-    p.load(project_folder)
-    p.name = project_name
-    p.save(project_folder)
-    print(f"Created project: {project_name}")
+    # board, users and subjects from alyx
+    pbc.create_custom_project_from_alyx(project_name)
+    # TODO: if not work, make locally with default names
+    # create empty tasks in pybpod
     create_project_tasks(project_name)
-    create_project_experiment(project_name)
+    # copy files from project_protocols to iblirg_params/<project_name>/tasks
     copy_project_protocols_files(project_name)
+    # create experiment and setups of board, users, subjects, and tasks
+    create_project_experiment_and_setups(project_name)
+
+
+def test_import_project_to_rig():
+    """
+    Test import of project_protocols to rig
+    """
+    project_name = "example_project"
+    task_name = "_example_tasks_passive"
+    # test the list of list_personal_projects
+    ppout = list_projects()
+    assert any([project_name in p.name for p in ppout])
+    assert any([".git" not in p.name for p in ppout])
+    # test the list_task_names for one project
+    tnout = list_repo_tasks(project_name)
+    assert any([task_name in x.name for x in tnout])
+    # create temporary project
+    pbc.create_project(project_name)
+    pbc.create_user(project_name)
+    pbc.create_subject(project_name, "_iblrig_test_mouse")
+    # create tasks
+    create_project_tasks(project_name)
+    # move files
+    copy_project_protocols_files(project_name)
+    # create experiments
+    create_project_experiment_and_setups(project_name)
+    # cleanup
+    shutil.rmtree(Path(ph.get_iblrig_params_folder()).joinpath(project_name))
+    print("\nIf you can read this the test has passed!\n")
 
 
 if __name__ == "__main__":
-    # test the list of list_personal_projects
-    ppout = list_projects()
-    assert any(["ibl_fiberfluo_pilot_01" in p.name for p in ppout])
-    assert any([".git" not in p.name for p in ppout])
-    # test the list_task_names for one project
-    tnout = list_repo_tasks("ibl_fiberfluo_pilot_01")
-    assert all(["NPH" in x.name for x in tnout])
-    # test the copy_as_folder function
-    # src = Path('src_folder')
-    # dst = Path('dst_folder')
-    # copy_as_folder(src, dst)
-    # assert dst.joinpath('src_folder').exists()
-    # cleanup
-    # src.rmdir()
-    # shutil.rmtree(dst)
-    # test_creation of existing project
-    pbc.create_custom_project_from_alyx("ibl_fiberfluo_pilot_01")
-    # create tasks
-    create_project_tasks("ibl_fiberfluo_pilot_01")
-    # move files
-    copy_project_protocols_files("ibl_fiberfluo_pilot_01")
-    # create experiments
-    create_project_experiment("ibl_fiberfluo_pilot_01")
-    # create board, users, subjects tasks and generic experiment w/ 1 setup per task
+    # Create CLI
+    parser = argparse.ArgumentParser(description="Create a new project")
+    # Add optional project_name parameter
+    parser.add_argument(
+        "-p",
+        help="Name of the project to create",
+        type=str,
+        default="example_project",
+        required=False,
+    )
+    # Add optional arguments to run test
+    parser.add_argument("--test", action="store_true", help="Run test")
+
+    args = parser.parse_args()
+    # Run
+    if args.test:
+        test_import_project_to_rig()
+    else:
+        create_project(args.p)
