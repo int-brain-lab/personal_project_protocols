@@ -53,7 +53,7 @@ opto_hz = opto_hz[shuffled_indices]
 opto_power = opto_power[shuffled_indices]
 
 # Make lookup table how many pulses to send (hardcoded in LED driver)
-opto_hz_pulses = [1, 5, 10, 25, 1, 5, 10, 25]
+opto_hz_pulses = [25, 10, 5, 1, 25, 10, 5, 1]
 opto_power_pulses = [1, 1, 1, 1, 0.5, 0.5, 0.5, 0.5]
 
 # Spontaneous activity
