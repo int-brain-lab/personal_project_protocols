@@ -1,0 +1,20 @@
+{
+    "__CREATED-ON__": "2022-01-25 15:58:34.533085",
+    "__DEF-TEXT__": "This file contains information about a PyBpod experiment setup.",
+    "__DEF-URL__": "http://pybpod.readthedocs.org",
+    "__EXTERNAL-REF__": [
+        "94bb4ccd-00fd-4cb4-a331-600fbdb8e609",
+        "9987149d-be62-4433-a86d-12af75c8f3a8"
+    ],
+    "__SOFTWARE__": "PyBpod GUI API v1.8.2",
+    "__UPDATED-ON__": "2022-01-25 16:04:07.489507",
+    "__UUID4__": "ec8d42be-5a68-4aac-89dc-53badbdd6544",
+    "board": "_iblrig_cortexlab_mesoscope",
+    "detached": true,
+    "subjects": [
+        "_iblrig_test_mouse"
+    ],
+    "task": "_iblrig_tasks_passiveMesoscope",
+    "update-variables": false,
+    "variables": []
+}

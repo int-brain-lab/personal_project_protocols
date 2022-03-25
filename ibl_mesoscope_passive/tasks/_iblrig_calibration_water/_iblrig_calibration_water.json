@@ -1,0 +1,17 @@
+{
+    "__CREATED-ON__": "2022-01-25 14:30:26.552234",
+    "__DEF-TEXT__": "This file contains information about a PyBpod protocol.",
+    "__DEF-URL__": "http://pybpod.readthedocs.org",
+    "__SOFTWARE__": "PyBpod GUI API v1.8.2",
+    "__UPDATED-ON__": "2022-01-25 14:30:26.585573",
+    "__UUID4__": "29eda2c3-649a-4dc6-a9f3-65d7d72ef8fd",
+    "commands": [
+        {
+            "cmd": "python C:\\iblrig\\scripts\\cleanup.py",
+            "type": "create_execcmd",
+            "when": 1
+        }
+    ],
+    "name": "_iblrig_calibration_water",
+    "trigger-softcodes": false
+}
