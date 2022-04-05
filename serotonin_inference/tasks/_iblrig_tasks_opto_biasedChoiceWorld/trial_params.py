@@ -97,6 +97,7 @@ class TrialParamHandler(object):
             0, self.session_start_delay_sec
         )
         self.task_protocol = sph.PYBPOD_PROTOCOL
+        self.stim_reverse = 0
         self.data_file_path = sph.DATA_FILE_PATH
         self.data_file = open(self.data_file_path, "a")
         self.position_set = sph.STIM_POSITIONS
@@ -176,6 +177,9 @@ class TrialParamHandler(object):
             self.laser_stimulation = bool(np.random.choice([True, False]))
         elif self.laser_half_half:
             self.laser_stimulation = self.laser_first_half_on
+
+        self.laser_stimulation = True
+
         if self.laser_stimulation:
             self.laser_out = self.out_laser_on
             self.laser_block = True

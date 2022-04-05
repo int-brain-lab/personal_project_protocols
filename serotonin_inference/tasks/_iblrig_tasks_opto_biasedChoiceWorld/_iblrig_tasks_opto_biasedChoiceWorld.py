@@ -174,17 +174,10 @@ for i in range(sph.NTRIALS):  # Main loop
         state_timer=tph.response_window,
         output_actions=[("Serial1", bonsai_close_loop)],
         state_change_conditions={
-            "Tup": "no_go_opto_off",
+            "Tup": "no_go",
             tph.event_error: "freeze_error",
             tph.event_reward: "freeze_reward",
         },
-    )
-
-    sma.add_state(
-        state_name="no_go_opto_off",
-        state_timer=0.1,
-        output_actions=[tph.laser_out],
-        state_change_conditions={"Tup": "no_go"},
     )
 
     sma.add_state(

@@ -97,6 +97,7 @@ class TrialParamHandler(object):
             0, self.session_start_delay_sec
         )
         self.task_protocol = sph.PYBPOD_PROTOCOL
+        self.stim_reverse = 0
         self.data_file_path = sph.DATA_FILE_PATH
         self.data_file = open(self.data_file_path, "a")
         self.position_set = sph.STIM_POSITIONS
