@@ -32,7 +32,7 @@ These values can be modified in task_settings file (lines 60-68), example:
 - PRESTIMULUS_TIME_LASER=0.3 # time in s before visual stimulus for quiecence laser trials
 - CONTRAST_LASER_SET = [1.0, 0.125, 0.0] # Laser stimulation contrast set
 - LASER_STIMULATION_WHERE=['iti', 'quiescence', 'go_cue','stimulus_on']
-- PROBABILITY_LASER_STIMULATION_WHERE = [0,0,0,1] # 30% of laser trials corresponds to stimulation at visual stimulus onset; sum of these values = 1 ; if [0,.5,0,.5] this means that these 30% of laser trials will be splitted equally (50%) between quiescence or stimulus_on events;
+- PROBABILITY_LASER_STIMULATION_WHERE = [0,0,0,1] # 30% of laser trials corresponds to stimulation at visual stimulus onset; sum of these values = 1 ; if [0,.5,0,.5] this means that these 30% of laser trials will be splitted equally (50%) between quiescence and stimulus_on events;
 
 Additionally you can add information about laser stimulation type, example:
 - LASER_WAVEFORM='square'
