@@ -97,6 +97,7 @@ class TrialParamHandler(object):
             0, self.session_start_delay_sec
         )
         self.task_protocol = sph.PYBPOD_PROTOCOL
+        self.stim_reverse = 0
         self.data_file_path = sph.DATA_FILE_PATH
         self.data_file = open(self.data_file_path, "a")
         self.position_set = sph.STIM_POSITIONS
@@ -362,7 +363,7 @@ TIME FROM START:      {self.elapsed_time}
         self.data_file.write("\n")
         self.data_file.close()
         # If more than 42 trials save transfer_me.flag
-        if self.trial_num == 42:
+        if self.trial_num == 1:
             misc.create_flags(self.data_file_path, self.poop_count)
 
         return self

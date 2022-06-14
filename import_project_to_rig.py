@@ -34,38 +34,6 @@ def list_repo_tasks(project_name):
     return tasks
 
 
-# def copy_as_folder(src_folder_to_copy, to_dst_folder_path, overwrite=False):
-#     """
-#     Copy a folder as a folder to a destination folder
-#     Will create the src_folder name in the dst_folder
-#     Output should be the same as dragging a folder to another one.
-
-#     ./somewhere/src_folder/*
-#     ./somewhere/dst_folder/*
-
-#     ./somewhere/dst_folder/src_folder_copy/*
-#     """
-#     src_folder = Path(src_folder_to_copy)
-#     dst_folder = Path(to_dst_folder_path).joinpath(src_folder.name)
-#     if overwrite:
-#         shutil.rmtree(dst_folder)
-#     shutil.copytree(src_folder, dst_folder)
-#     print(f"  Copied {src_folder} to {dst_folder}")
-
-
-# def copy_project_tasks_files(project_name):
-#     """Copy all files in project_protocols/{project_name}/tasks/* folder to
-#     iblrig_params_path/{project_name}/tasks/* folder
-#     """
-
-#     iblrig_params_path = Path(ph.get_iblrig_params_folder())
-#     iblrig_params_tasks_path = iblrig_params_path / project_name / "tasks"
-#     project_protocols_tasks_path = iblrig_params_path.parent.joinpath("project_protocols", project_name, "tasks")
-#     print(f"\nCopying {project_name} tasks files to {iblrig_params_tasks_path}")
-#     copy_as_folder(project_protocols_tasks_path, iblrig_params_tasks_path)
-#     print("Done")
-
-
 def copy_task_files(project_name, task_name):
     """Copy all files in project_protocols/{project_name}/tasks/{task_name} folder to
     iblrig_params_path/{project_name}/tasks/{task_name} folder

@@ -3,9 +3,9 @@
     "__DEF-TEXT__": "This file contains information about a PyBpod protocol.",
     "__DEF-URL__": "http://pybpod.readthedocs.org",
     "__SOFTWARE__": "PyBpod GUI API v1.8.2",
-    "__UPDATED-ON__": "2020-11-03 18:25:51.991247",
+    "__UPDATED-ON__": "2022-03-14 13:47:15.960377",
     "__UUID4__": "f40d91b7-39c9-4624-9859-90ee5466e636",
     "commands": [],
-    "name": "_iblrig_tasks_passive_opto",
+    "name": "_iblrig_tasks_passive_opto_short",
     "trigger-softcodes": false
 }

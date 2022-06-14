@@ -59,12 +59,12 @@ time.sleep(sph.SPONTANEOUS_DURATION)
 # start opto stim
 log.info("Starting optogenetic stimulation")
 for i in range(sph.OPTO_TIMES):
-    log.info("Stimulation %d of %d" % (i + 1, sph.OPTO_TIMES))
+    this_isi = misc.texp(factor=sph.ISI_MEAN, min_=sph.ISI_MIN, max_=sph.ISI_MAX)
+    log.info("Stimulation %d of %d (ISI: %.1f sec)" % (i + 1, sph.OPTO_TIMES, this_isi))
     opto_stim(bpod, 0.001)  # A short pulse to start opto 
     time.sleep(sph.OPTO_DURATION - 0.001)
     opto_stim(bpod, 0.1)  # A long pulse to end it
-    time.sleep(sph.OPTO_INTERVAL - 0.1)
-
+    time.sleep(this_isi)
 
 bpod.close()
 # Turn bpod light's back on

@@ -2,9 +2,9 @@
 # TASK PARAMETER DEFINITION (should appear on GUI) init trial objects values
 # =============================================================================
 # SOUND, AMBIENT SENSOR, AND VIDEO RECORDINGS
-RECORD_SOUND = True
+RECORD_SOUND = False
 RECORD_AMBIENT_SENSOR_DATA = True
-RECORD_VIDEO = True
+RECORD_VIDEO = False
 OPEN_CAMERA_VIEW = True  # if RECORD_VIDEO == True OPEN_CAMERA_VIEW is ignored
 # REWARDS
 AUTOMATIC_CALIBRATION = True  # Wether to look for a calibration session and func to define the valve opening time  # noqa
