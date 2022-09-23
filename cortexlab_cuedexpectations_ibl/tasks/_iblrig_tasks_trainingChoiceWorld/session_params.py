@@ -160,10 +160,9 @@ class SessionParamHandler(object):
 
     # Bonsai start camera called from main task file
     def start_camera_recording(self):
-        if bonsai.launch_cameras():
-            return bonsai.start_camera_recording(self)
-        else:
+        if "ephys" in self.PYBPOD_BOARD:  # If on ephys record only sound
             return bonsai.start_mic_recording(self)
+        return bonsai.start_camera_recording(self)
 
     # =========================================================================
     # SOUND INTERFACE FOR STATE MACHINE

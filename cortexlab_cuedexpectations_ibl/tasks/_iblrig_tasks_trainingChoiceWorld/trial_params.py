@@ -343,7 +343,7 @@ class TrialParamHandler(object):
         return self
 
     def check_stop_criterions(self):
-        return misc.check_stop_criterions(
+        return misc.check_stop_criterions_SP(
             self.init_datetime, self.response_time_buffer, self.trial_num
         )
 

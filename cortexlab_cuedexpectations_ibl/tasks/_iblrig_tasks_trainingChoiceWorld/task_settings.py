@@ -21,8 +21,8 @@ BONSAI_EDITOR = False  # Whether to open the visual stim Bonsai editor or not
 REPEAT_ON_ERROR = True
 # STATE TIMERS
 QUIESCENCE_THRESHOLDS = [-2, 2]  # degree
-QUIESCENT_PERIOD = 0.2  # + x, where x~exp(0.35), t ∈ 0.2 <= R <= 0.5
-INTERACTIVE_DELAY = 0.0  # (s) how long after stim onset the CL starts
+QUIESCENT_PERIOD = 0.3  # + x, where x~exp(0.35), t ∈ 0.2 <= R <= 0.5
+INTERACTIVE_DELAY = 1.0  # (s) how long after stim onset the CL starts
 RESPONSE_WINDOW = 60  # Time to move the wheel after go tone (seconds)
 ITI_CORRECT = 1  # how long the stim should stay visible after CORRECT choice
 ITI_ERROR = 2  # how long the stim should stay visible after ERROR choice
