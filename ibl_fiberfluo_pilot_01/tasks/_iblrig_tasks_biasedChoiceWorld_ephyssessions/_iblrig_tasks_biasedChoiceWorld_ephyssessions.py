@@ -13,6 +13,7 @@ from pybpodapi.protocol import Bpod, StateMachine
 
 import online_plots as op
 import task_settings 
+from iblrig.bpod_helper import BpodMessageCreator
 from session_params import SessionParamHandler
 from trial_params import TrialParamHandler
 
@@ -95,7 +96,6 @@ for i in range(sph.NTRIALS):  # Main loop
     #     Start state machine definition
     # =============================================================================
     sma = StateMachine(bpod)
-
     if i == 0:  # First trial exception start camera
         log.info("First trial initializing, will move to next trial only if:")
         log.info("1. camera is detected")
