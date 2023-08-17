@@ -1,0 +1,17 @@
+To be reviewed* 
+
+ - all of the task protocols have at least 1 TTL being send out from BPOD (code: "output_actions=[" (...) ",("BNC1", 255)]") - used to do the synchronization with the photometry setup; this was mostly added to stim_on event  
+
+Additional editions: 
+  1. _iblrig_NPH_tasks_biasedChoiceWorld_delay
+ - added to task_settings: 
+"INTERACTIVE_DELAY_2 = 3.0  # (s) how long after choice the feedback comes #KB added 28122022" 
+ - added new "events" to the _iblrig_NPH_tasks_biasedChoiceWorld_delay.py file (commented as "#changed" or "#change in the other file")
+
+  2. _iblrig_tasks_biasedChoiceWorld_ephyssessions
+ - ephys pre-generated sessions running in behav rigs 
+
+  3. _iblrig_tasks_biasedChoiceWorld_RPE 
+ - not using anymore; using in few sessions 
+ - different reward blocks
+
