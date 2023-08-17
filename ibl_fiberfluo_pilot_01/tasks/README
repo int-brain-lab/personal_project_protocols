@@ -1,3 +1,4 @@
+KB 17-Aug-2023
 To be reviewed* 
 
  - all of the task protocols have at least 1 TTL being send out from BPOD (code: "output_actions=[" (...) ",("BNC1", 255)]") - used to do the synchronization with the photometry setup; this was mostly added to stim_on event  
